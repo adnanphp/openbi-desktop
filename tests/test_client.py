@@ -98,3 +98,35 @@ def test_monthly_revenue():
     assert points[0].year == 2014
     assert points[0].month_name == "Jan"
     assert points[0].revenue == pytest.approx(14236.895)
+
+def test_customer_segments():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "cluster_label": "Champions",
+                    "customers": 106,
+                    "avg_recency_days": 24.5,
+                    "avg_frequency": 9.31,
+                    "avg_monetary": 5287.72,
+                    "total_monetary": 560498.83,
+                },
+                {
+                    "cluster_label": "At Risk",
+                    "customers": 102,
+                    "avg_recency_days": 220.4,
+                    "avg_frequency": 7.75,
+                    "avg_monetary": 4399.61,
+                    "total_monetary": 448760.05,
+                },
+            ],
+        )
+
+    client = make_client(handler)
+    segments = client.customer_segments()
+    assert len(segments) == 2
+    assert segments[0].cluster_label == "Champions"
+    assert segments[0].customers == 106
+    assert segments[0].avg_monetary == pytest.approx(5287.72)
+    assert segments[1].total_monetary == pytest.approx(448760.05)

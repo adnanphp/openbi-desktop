@@ -110,16 +110,10 @@ class OpenBIClient:
                 CustomerSegment(
                     cluster_label=str(row.get("cluster_label", "")),
                     customers=int(row.get("customers", 0)),
-                    avg_monetary=(
-                        float(row["avg_monetary"])
-                        if row.get("avg_monetary") is not None
-                        else None
-                    ),
-                    total_monetary=(
-                        float(row["total_monetary"])
-                        if row.get("total_monetary") is not None
-                        else None
-                    ),
+                    avg_recency_days=float(row.get("avg_recency_days", 0)),
+                    avg_frequency=float(row.get("avg_frequency", 0)),
+                    avg_monetary=float(row.get("avg_monetary", 0)),
+                    total_monetary=float(row.get("total_monetary", 0)),
                     raw=row,
                 )
             )

@@ -43,8 +43,10 @@ class CategoryRevenue:
 class CustomerSegment:
     cluster_label: str
     customers: int
-    avg_monetary: float | None = None
-    total_monetary: float | None = None
+    avg_recency_days: float
+    avg_frequency: float
+    avg_monetary: float
+    total_monetary: float
     raw: dict[str, Any] = field(default_factory=dict)
 
 
