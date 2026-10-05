@@ -5,12 +5,10 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
     QStackedWidget,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -26,7 +24,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._config = config
         self.setWindowTitle("OpenBI Desktop")
-        self.resize(1100, 720)
+
+        # Restore geometry from config.
+        w = config.window
+        self.resize(w.width, w.height)
+        if w.x >= 0 and w.y >= 0:
+            self.move(w.x, w.y)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -61,7 +64,6 @@ class MainWindow(QMainWindow):
         outer.addWidget(self._sidebar)
         outer.addWidget(self._stack, 1)
 
-        # When the Connect view verifies a URL, propagate it to other views.
         self._connect_view.connected.connect(self._on_connected)
 
     def _add_view(self, label: str, widget: QWidget) -> None:
@@ -71,3 +73,16 @@ class MainWindow(QMainWindow):
 
     def _on_connected(self, url: str) -> None:
         self._config.api_url = url
+
+    def closeEvent(self, event) -> None:  # noqa: N802 (Qt override)
+        """Save window geometry on close."""
+        geo = self.geometry()
+        self._config.window.width = geo.width()
+        self._config.window.height = geo.height()
+        self._config.window.x = geo.x()
+        self._config.window.y = geo.y()
+        try:
+            self._config.save()
+        except OSError:
+            pass  # don't block shutdown if save fails
+        super().closeEvent(event)
