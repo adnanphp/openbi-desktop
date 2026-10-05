@@ -6,6 +6,6 @@ Comment=Native Linux client for OpenBI
 Exec=openbi-desktop
 Icon=openbi-desktop
 Terminal=false
-Categories=Office;Finance;DataVisualization;
+Categories=Office;Finance;Science;DataVisualization;
 Keywords=BI;Analytics;Dashboard;Business Intelligence;
 StartupNotify=true

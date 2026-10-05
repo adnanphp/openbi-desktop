@@ -40,3 +40,11 @@ AppDir/
 build/
 dist/
 *.spec.bak
+
+# AppImage build tools (downloaded on demand)
+packaging/tools/
+packaging/AppDir/
+*.AppImage
+
+# AppImage checksums (generated per build)
+*.sha256
