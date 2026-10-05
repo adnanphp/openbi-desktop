@@ -13,6 +13,7 @@ authors = [{ name = "adnanphp" }]
 dependencies = [
     "PySide6>=6.6",
     "httpx>=0.27",
+    "tomli-w>=1.0",
 ]
 
 [project.optional-dependencies]

@@ -2,18 +2,10 @@
 
 import sys
 
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow
+from PySide6.QtWidgets import QApplication
 
-
-class MainWindow(QMainWindow):
-    def __init__(self) -> None:
-        super().__init__()
-        self.setWindowTitle("OpenBI Desktop")
-        self.resize(900, 600)
-
-        label = QLabel("OpenBI Desktop — skeleton running")
-        label.setStyleSheet("font-size: 18px; padding: 24px;")
-        self.setCentralWidget(label)
+from openbi_desktop.config import AppConfig
+from openbi_desktop.views.main_window import MainWindow
 
 
 def main() -> int:
@@ -21,7 +13,8 @@ def main() -> int:
     app.setApplicationName("OpenBI Desktop")
     app.setOrganizationName("OpenBI")
 
-    window = MainWindow()
+    config = AppConfig.load()
+    window = MainWindow(config)
     window.show()
 
     return app.exec()
