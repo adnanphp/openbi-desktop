@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "desktop-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-appimage:
+    name: Build AppImage
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libfuse2 \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-xinerama0 \
+            libxcb-xkb1 \
+            libegl1 \
+            libgl1 \
+            libglx-mesa0 \
+            libopengl0 \
+            libdbus-1-3 \
+            libfontconfig1 \
+            libfreetype6 \
+            libx11-xcb1
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Download appimagetool
+        run: |
+          mkdir -p packaging/tools
+          wget -q -O packaging/tools/appimagetool-x86_64.AppImage \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x packaging/tools/appimagetool-x86_64.AppImage
+
+      - name: Determine version
+        id: version
+        run: |
+          # Tag format: desktop-v0.1.0  ->  VERSION=0.1.0
+          # Tag format: v0.1.0          ->  VERSION=0.1.0
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#desktop-v}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building version: ${VERSION}"
+
+      - name: Build AppImage
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          ./packaging/build-appimage.sh
+
+      - name: List build artifacts
+        run: ls -lh *.AppImage *.sha256
+
+      - name: Upload artifact to workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: openbi-desktop-appimage
+          path: |
+            OpenBI-Desktop-*.AppImage
+            OpenBI-Desktop-*.AppImage.sha256
+          retention-days: 30
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: OpenBI Desktop ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            OpenBI-Desktop-*.AppImage
+            OpenBI-Desktop-*.AppImage.sha256
+          body: |
+            ## OpenBI Desktop ${{ steps.version.outputs.VERSION }}
+
+            Native Linux desktop client for [OpenBI](https://github.com/adnanphp/openbi).
+
+            ### Install
+
+            ```bash
+            # Download
+            wget https://github.com/adnanphp/openbi-desktop/releases/download/${{ github.ref_name }}/OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+
+            # Make executable
+            chmod +x OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+
+            # Run
+            ./OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+Requires FUSE 2 (libfuse2 on Ubuntu/Debian, fuse2 on Fedora).
+
+Verify
+bash
+sha256sum -c OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage.sha256
+Compatibility
+Built on Ubuntu 22.04 (glibc 2.35). Runs on Ubuntu 22.04+, Fedora 38+, Debian 12+, and other modern Linux distributions.
+
+Connect
+On first launch, enter the URL of your OpenBI API backend, for example:
+
+text
+http://localhost:8000
+You'll need an OpenBI instance running. See the main repository.
