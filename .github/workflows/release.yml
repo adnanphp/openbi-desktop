@@ -67,8 +67,6 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          # Tag format: desktop-v0.1.0  ->  VERSION=0.1.0
-          # Tag format: v0.1.0          ->  VERSION=0.1.0
           TAG="${GITHUB_REF_NAME}"
           VERSION="${TAG#desktop-v}"
           VERSION="${VERSION#v}"
@@ -103,33 +101,3 @@ jobs:
           files: |
             OpenBI-Desktop-*.AppImage
             OpenBI-Desktop-*.AppImage.sha256
-          body: |
-            ## OpenBI Desktop ${{ steps.version.outputs.VERSION }}
-
-            Native Linux desktop client for [OpenBI](https://github.com/adnanphp/openbi).
-
-            ### Install
-
-            ```bash
-            # Download
-            wget https://github.com/adnanphp/openbi-desktop/releases/download/${{ github.ref_name }}/OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
-
-            # Make executable
-            chmod +x OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
-
-            # Run
-            ./OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
-Requires FUSE 2 (libfuse2 on Ubuntu/Debian, fuse2 on Fedora).
-
-Verify
-bash
-sha256sum -c OpenBI-Desktop-${{ steps.version.outputs.VERSION }}-x86_64.AppImage.sha256
-Compatibility
-Built on Ubuntu 22.04 (glibc 2.35). Runs on Ubuntu 22.04+, Fedora 38+, Debian 12+, and other modern Linux distributions.
-
-Connect
-On first launch, enter the URL of your OpenBI API backend, for example:
-
-text
-http://localhost:8000
-You'll need an OpenBI instance running. See the main repository.
