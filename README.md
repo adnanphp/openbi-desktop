@@ -26,6 +26,24 @@ desktop app is the face.
 
 ---
 
+## Screenshots
+
+![1](docs/images/image1.png)
+![2](docs/images/image2.png)
+![3](docs/images/image3.png)
+![4](docs/images/image4.png)
+![5](docs/images/image5.png)
+![6](docs/images/image6.png)
+![7](docs/images/image7.png)
+![8](docs/images/image8.png)
+![9](docs/images/image9.png)
+![10](docs/images/image10.png)
+![11](docs/images/image11.png)
+![12](docs/images/image12.png)
+![13](docs/images/image13.png)
+
+
+
 ## Install
 
 ### AppImage (recommended)
