@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=OpenBI Desktop
+GenericName=Business Intelligence Client
+Comment=Native Linux client for OpenBI
+Exec=openbi-desktop
+Icon=openbi-desktop
+Terminal=false
+Categories=Office;Finance;DataVisualization;
+Keywords=BI;Analytics;Dashboard;Business Intelligence;
+StartupNotify=true
