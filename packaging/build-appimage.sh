@@ -41,11 +41,21 @@ chmod +x packaging/AppDir/AppRun
 echo "==> appimagetool"
 ARCH=x86_64 ./packaging/tools/appimagetool-x86_64.AppImage packaging/AppDir
 
+echo "==> Locating generated AppImage"
+# appimagetool may name the file with a ref suffix (e.g. -main, -v0.1.0).
+# Find whatever it produced.
+GENERATED="$(ls -1 *.AppImage 2>/dev/null | head -n 1 || true)"
+if [ -z "${GENERATED}" ]; then
+  echo "ERROR: appimagetool did not produce an AppImage"
+  exit 1
+fi
+echo "Found: ${GENERATED}"
+
 echo "==> Renaming and checksumming"
 FINAL="OpenBI-Desktop-${VERSION}-x86_64.AppImage"
-mv OpenBI_Desktop-x86_64.AppImage "$FINAL"
-sha256sum "$FINAL" > "${FINAL}.sha256"
+mv "${GENERATED}" "${FINAL}"
+sha256sum "${FINAL}" > "${FINAL}.sha256"
 
 echo
-echo "Built: $FINAL"
+echo "Built: ${FINAL}"
 cat "${FINAL}.sha256"
