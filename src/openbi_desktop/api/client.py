@@ -62,12 +62,11 @@ class OpenBIClient:
         if not isinstance(data, dict):
             raise ParseError("Unexpected /kpis/executive response shape")
         return ExecutiveKPIs(
-            revenue=float(data.get("revenue", 0)),
-            profit=float(data.get("profit", 0)),
-            margin=float(data.get("margin", 0)),
-            orders=int(data.get("orders", 0)),
-            customers=int(data.get("customers", 0)),
-            products=int(data.get("products", 0)),
+            total_revenue=float(data.get("total_revenue", 0)),
+            total_profit=float(data.get("total_profit", 0)),
+            total_orders=int(data.get("total_orders", 0)),
+            avg_order_value=float(data.get("avg_order_value", 0)),
+            profit_margin_pct=float(data.get("profit_margin_pct", 0)),
             raw=data,
         )
 
@@ -79,8 +78,12 @@ class OpenBIClient:
         for row in data:
             out.append(
                 MonthlyRevenuePoint(
-                    month=str(row.get("month", "")),
+                    year=int(row.get("year", 0)),
+                    month=int(row.get("month", 0)),
+                    month_name=str(row.get("month_name", "")),
                     revenue=float(row.get("revenue", 0)),
+                    profit=float(row.get("profit", 0)),
+                    orders=int(row.get("orders", 0)),
                 )
             )
         return out

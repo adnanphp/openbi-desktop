@@ -1,4 +1,7 @@
-"""Typed data models for OpenBI API responses."""
+"""Typed data models for OpenBI API responses.
+
+Field names match the actual OpenBI FastAPI responses.
+"""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -12,19 +15,22 @@ class HealthStatus:
 
 @dataclass
 class ExecutiveKPIs:
-    revenue: float
-    profit: float
-    margin: float
-    orders: int
-    customers: int
-    products: int
+    total_revenue: float
+    total_profit: float
+    total_orders: int
+    avg_order_value: float
+    profit_margin_pct: float
     raw: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class MonthlyRevenuePoint:
-    month: str
+    year: int
+    month: int
+    month_name: str
     revenue: float
+    profit: float
+    orders: int
 
 
 @dataclass
