@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from openbi_desktop.config import AppConfig
 from openbi_desktop.views.connect import ConnectView
 from openbi_desktop.views.dashboard import DashboardView
-
+from openbi_desktop.views.customers import CustomersView
 
 class _PlaceholderView(QWidget):
     """Temporary placeholder until a real view is built."""
@@ -61,7 +61,8 @@ class MainWindow(QMainWindow):
 
         self._add_view("Connect", self._connect_view)
         self._add_view("Dashboard", self._dashboard_view)
-        self._add_view("Customers", _PlaceholderView("Customers"))
+        self._customers_view = CustomersView(self._config)
+        self._add_view("Customers", self._customers_view)
         self._add_view("Forecasts", _PlaceholderView("Forecasts"))
 
         self._sidebar.currentRowChanged.connect(self._stack.setCurrentIndex)
