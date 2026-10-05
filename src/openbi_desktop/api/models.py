@@ -52,14 +52,31 @@ class CustomerSegment:
 
 @dataclass
 class ForecastPoint:
-    month: str
-    value: float
+    forecast_month: str          # ISO date string "2018-01-01"
+    model_name: str
+    yhat: float
+    yhat_lower: float | None
+    yhat_upper: float | None
+    is_winner: bool
 
 
 @dataclass
-class ForecastModel:
-    model: str
-    mape: float
-    rmse: float
-    is_winner: bool = False
-    raw: dict[str, Any] = field(default_factory=dict)
+class ModelForecastSeries:
+    """All forecast points for one model, plus derived helpers."""
+
+    model_name: str
+    is_winner: bool
+    points: list[ForecastPoint]
+
+    @property
+    def total(self) -> float:
+        return sum(p.yhat for p in self.points)
+
+    @property
+    def display_name(self) -> str:
+        return {
+            "ets": "ETS (Holt-Winters)",
+            "xgboost": "XGBoost",
+            "baseline_ma": "Baseline MA",
+            "baseline": "Baseline",
+        }.get(self.model_name, self.model_name.replace("_", " ").title())

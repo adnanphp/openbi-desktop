@@ -11,9 +11,9 @@ from .models import (
     CategoryRevenue,
     CustomerSegment,
     ExecutiveKPIs,
-    ForecastModel,
     ForecastPoint,
     HealthStatus,
+    ModelForecastSeries,
     MonthlyRevenuePoint,
 )
 
@@ -119,31 +119,60 @@ class OpenBIClient:
             )
         return out
 
-    def latest_forecast(self) -> list[ForecastPoint]:
-        data = self._get("/forecasts/latest")
-        if not isinstance(data, list):
-            raise ParseError("Expected a list from /forecasts/latest")
-        return [
-            ForecastPoint(
-                month=str(row.get("month", "")),
-                value=float(row.get("value", 0)),
-            )
-            for row in data
-        ]
+    # -- forecasts --------------------------------------------------------
 
-    def forecast_models(self) -> list[ForecastModel]:
-        data = self._get("/forecasts/models")
+    def _parse_forecast_rows(self, data: Any) -> list[ForecastPoint]:
         if not isinstance(data, list):
-            raise ParseError("Expected a list from /forecasts/models")
-        out: list[ForecastModel] = []
+            raise ParseError("Expected a list of forecast rows")
+        out: list[ForecastPoint] = []
         for row in data:
             out.append(
-                ForecastModel(
-                    model=str(row.get("model", "")),
-                    mape=float(row.get("mape", 0)),
-                    rmse=float(row.get("rmse", 0)),
+                ForecastPoint(
+                    forecast_month=str(row.get("forecast_month", "")),
+                    model_name=str(row.get("model_name", "")),
+                    yhat=float(row.get("yhat", 0)),
+                    yhat_lower=(
+                        float(row["yhat_lower"])
+                        if row.get("yhat_lower") is not None
+                        else None
+                    ),
+                    yhat_upper=(
+                        float(row["yhat_upper"])
+                        if row.get("yhat_upper") is not None
+                        else None
+                    ),
                     is_winner=bool(row.get("is_winner", False)),
-                    raw=row,
                 )
             )
         return out
+
+    def latest_forecast(self) -> list[ForecastPoint]:
+        """Forecast rows for the winning model only."""
+        return self._parse_forecast_rows(self._get("/forecasts/latest"))
+
+    def all_forecasts(self) -> list[ForecastPoint]:
+        """Forecast rows for every candidate model."""
+        return self._parse_forecast_rows(self._get("/forecasts/models"))
+
+    def forecast_series_by_model(self) -> list[ModelForecastSeries]:
+        """Group the all-models forecast into one entry per model."""
+        rows = self.all_forecasts()
+        groups: dict[str, list[ForecastPoint]] = {}
+        winner: dict[str, bool] = {}
+        for row in rows:
+            groups.setdefault(row.model_name, []).append(row)
+            winner[row.model_name] = winner.get(row.model_name, False) or row.is_winner
+
+        result: list[ModelForecastSeries] = []
+        for name, points in groups.items():
+            points.sort(key=lambda p: p.forecast_month)
+            result.append(
+                ModelForecastSeries(
+                    model_name=name,
+                    is_winner=winner[name],
+                    points=points,
+                )
+            )
+        # Winner first, then by total descending.
+        result.sort(key=lambda s: (not s.is_winner, -s.total))
+        return result

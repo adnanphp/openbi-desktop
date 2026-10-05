@@ -99,6 +99,7 @@ def test_monthly_revenue():
     assert points[0].month_name == "Jan"
     assert points[0].revenue == pytest.approx(14236.895)
 
+
 def test_customer_segments():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(
@@ -130,3 +131,58 @@ def test_customer_segments():
     assert segments[0].customers == 106
     assert segments[0].avg_monetary == pytest.approx(5287.72)
     assert segments[1].total_monetary == pytest.approx(448760.05)
+
+
+def test_forecast_series_by_model():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "forecast_month": "2018-01-01",
+                    "model_name": "ets",
+                    "yhat": 50321.38,
+                    "yhat_lower": 32547.30,
+                    "yhat_upper": 68095.47,
+                    "is_winner": True,
+                },
+                {
+                    "forecast_month": "2018-02-01",
+                    "model_name": "ets",
+                    "yhat": 42480.26,
+                    "yhat_lower": 24706.18,
+                    "yhat_upper": 60254.34,
+                    "is_winner": True,
+                },
+                {
+                    "forecast_month": "2018-01-01",
+                    "model_name": "baseline_ma",
+                    "yhat": 93351.36,
+                    "yhat_lower": None,
+                    "yhat_upper": None,
+                    "is_winner": False,
+                },
+                {
+                    "forecast_month": "2018-02-01",
+                    "model_name": "baseline_ma",
+                    "yhat": 93351.36,
+                    "yhat_lower": None,
+                    "yhat_upper": None,
+                    "is_winner": False,
+                },
+            ],
+        )
+
+    client = make_client(handler)
+    series = client.forecast_series_by_model()
+
+    assert len(series) == 2
+    # Winner comes first.
+    assert series[0].model_name == "ets"
+    assert series[0].is_winner is True
+    assert series[0].display_name == "ETS (Holt-Winters)"
+    assert series[0].total == pytest.approx(50321.38 + 42480.26)
+
+    assert series[1].model_name == "baseline_ma"
+    assert series[1].is_winner is False
+    assert series[1].total == pytest.approx(93351.36 * 2)
